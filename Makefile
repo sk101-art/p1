@@ -2,7 +2,8 @@
 # Auto-SRE Platform Makefile
 # ==============================================================================
 
-.PHONY: help up down build chaos dataset validate test test-python test-java lint
+.PHONY: help up down build chaos dataset validate test test-python test-java lint \
+        laptop1-run laptop1-stop laptop1-verify
 
 help:
 	@echo "Available targets:"
@@ -14,6 +15,9 @@ help:
 	@echo "  make validate    - Run validate_10.py acceptance gates"
 	@echo "  make test        - Run all Python and Java unit tests"
 	@echo "  make lint        - Run ruff and mypy linters"
+	@echo "  make laptop1-run - Start laptop1 Phase1<->Phase2 integration service"
+	@echo "  make laptop1-stop - Stop laptop1 integration service"
+	@echo "  make laptop1-verify - Verify frozen Phase2 + integration health"
 
 up:
 	bash run.sh
@@ -48,3 +52,14 @@ test-java:
 lint:
 	ruff check .
 	mypy --ignore-missing-imports chaos_orchestrator.py phase1_processor.py package_ml_dataset.py validate_10.py
+
+# ---- laptop1 Phase1 <-> frozen Phase2 integration targets ------------
+
+laptop1-run:
+	powershell -File integration/laptop1/run-laptop1-integration.ps1
+
+laptop1-stop:
+	powershell -File integration/laptop1/stop-laptop1-integration.ps1
+
+laptop1-verify:
+	powershell -File integration/laptop1/verify-laptop1-integration.ps1

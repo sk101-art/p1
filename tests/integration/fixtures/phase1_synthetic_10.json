@@ -1,0 +1,578 @@
+{
+  "generated_at": "2026-08-31T19:20:28Z",
+  "metadata": {
+    "dataset_version": "2.0.0",
+    "processor_version": 2,
+    "git_sha": "0000000000000000000000000000000000000000",
+    "source_files": {
+      "status.json": 3,
+      "processed_incidents.json": 10
+    },
+    "schema_version": "1.0"
+  },
+  "system_context": {
+    "objective": "Perform automated Multi-Agent Root Cause Analysis",
+    "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)"
+  },
+  "incidents": [
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 95.0,
+        "active_warnings": 1
+      },
+      "incident_event": {
+        "incident_id": "auth-service_0",
+        "target_service": "auth-service",
+        "priority_score": 130.0,
+        "severity": "CRITICAL",
+        "occurrence_count": 10
+      },
+      "infrastructure_topology": {
+        "role": "auth-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "degraded",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.lang.NullPointerException: Token secret missing",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.lang.NullPointerException: Token secret missing\n\tat com.ecommerce.auth.AuthService.login(AuthService.java:42)",
+            "trace_id": "trace_0000",
+            "span_id": "span_0000"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 12.5,
+            "memory_usage_bytes": 104857600,
+            "memory_usage_percent": 25.0
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": ""
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 90.0,
+        "active_warnings": 2
+      },
+      "incident_event": {
+        "incident_id": "auth-service_1",
+        "target_service": "auth-service",
+        "priority_score": 127.5,
+        "severity": "HIGH",
+        "occurrence_count": 9
+      },
+      "infrastructure_topology": {
+        "role": "auth-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "redis.clients.jedis.exceptions.JedisConnectionException: Failed to connect",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "redis.clients.jedis.exceptions.JedisConnectionException: Failed to connect\n\tat com.ecommerce.order.OrderService.checkout(OrderService.java:87)",
+            "trace_id": "trace_0001",
+            "span_id": "span_0001"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 14.0,
+            "memory_usage_bytes": 104858624,
+            "memory_usage_percent": 25.5
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network-partition"
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 85.0,
+        "active_warnings": 3
+      },
+      "incident_event": {
+        "incident_id": "auth-service_2",
+        "target_service": "auth-service",
+        "priority_score": 125.0,
+        "severity": "HIGH",
+        "occurrence_count": 8
+      },
+      "infrastructure_topology": {
+        "role": "auth-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "org.springframework.dao.DataIntegrityViolationException: Duplicate key",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "org.springframework.dao.DataIntegrityViolationException: Duplicate key\n\tat com.ecommerce.payment.PaymentService.process(PaymentService.java:33)",
+            "trace_id": "trace_0002",
+            "span_id": "span_0002"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 15.5,
+            "memory_usage_bytes": 104859648,
+            "memory_usage_percent": 26.0
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": ""
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 80.0,
+        "active_warnings": 4
+      },
+      "incident_event": {
+        "incident_id": "auth-service_3",
+        "target_service": "auth-service",
+        "priority_score": 122.5,
+        "severity": "MEDIUM",
+        "occurrence_count": 7
+      },
+      "infrastructure_topology": {
+        "role": "auth-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "degraded",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.net.ConnectException: Connection refused (postgres-db:5432)",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.net.ConnectException: Connection refused (postgres-db:5432)\n\tat com.ecommerce.gateway.GatewayFilter.doFilter(GatewayFilter.java:56)",
+            "trace_id": "trace_0003",
+            "span_id": "span_0003"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 17.0,
+            "memory_usage_bytes": 104860672,
+            "memory_usage_percent": 26.5
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network-partition"
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 75.0,
+        "active_warnings": 5
+      },
+      "incident_event": {
+        "incident_id": "order-service_4",
+        "target_service": "order-service",
+        "priority_score": 120.0,
+        "severity": "HIGH",
+        "occurrence_count": 6
+      },
+      "infrastructure_topology": {
+        "role": "order-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "com.rabbitmq.client.ShutdownSignalException: channel error",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "com.rabbitmq.client.ShutdownSignalException: channel error\n\tat com.ecommerce.auth.JwtValidator.validate(JwtValidator.java:19)",
+            "trace_id": "trace_0004",
+            "span_id": "span_0004"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 18.5,
+            "memory_usage_bytes": 104861696,
+            "memory_usage_percent": 27.0
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": ""
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 70.0,
+        "active_warnings": 6
+      },
+      "incident_event": {
+        "incident_id": "order-service_5",
+        "target_service": "order-service",
+        "priority_score": 117.5,
+        "severity": "MEDIUM",
+        "occurrence_count": 5
+      },
+      "infrastructure_topology": {
+        "role": "order-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.lang.OutOfMemoryError: Java heap space",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.lang.OutOfMemoryError: Java heap space\n\tat com.ecommerce.inventory.InventoryService.reserve(InventoryService.java:71)",
+            "trace_id": "trace_0005",
+            "span_id": "span_0005"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 20.0,
+            "memory_usage_bytes": 104862720,
+            "memory_usage_percent": 27.5
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network-partition"
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 65.0,
+        "active_warnings": 7
+      },
+      "incident_event": {
+        "incident_id": "order-service_6",
+        "target_service": "order-service",
+        "priority_score": 115.0,
+        "severity": "LOW",
+        "occurrence_count": 4
+      },
+      "infrastructure_topology": {
+        "role": "order-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "degraded",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.io.IOException: Broken pipe",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.io.IOException: Broken pipe\n\tat com.ecommerce.notification.NotificationService.send(NotificationService.java:44)",
+            "trace_id": "trace_0006",
+            "span_id": "span_0006"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 21.5,
+            "memory_usage_bytes": 104863744,
+            "memory_usage_percent": 28.0
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": ""
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 60.0,
+        "active_warnings": 8
+      },
+      "incident_event": {
+        "incident_id": "payment-service_7",
+        "target_service": "payment-service",
+        "priority_score": 112.5,
+        "severity": "HIGH",
+        "occurrence_count": 3
+      },
+      "infrastructure_topology": {
+        "role": "payment-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.util.concurrent.TimeoutException: Request timed out",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.util.concurrent.TimeoutException: Request timed out\n\tat com.ecommerce.common.db.LazyConnection.connect(LazyConnection.java:28)",
+            "trace_id": "trace_0007",
+            "span_id": "span_0007"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 23.0,
+            "memory_usage_bytes": 104864768,
+            "memory_usage_percent": 28.5
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network-partition"
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 55.0,
+        "active_warnings": 9
+      },
+      "incident_event": {
+        "incident_id": "payment-service_8",
+        "target_service": "payment-service",
+        "priority_score": 110.0,
+        "severity": "MEDIUM",
+        "occurrence_count": 2
+      },
+      "infrastructure_topology": {
+        "role": "payment-service-service",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "healthy",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "java.lang.NullPointerException: Token secret missing",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "java.lang.NullPointerException: Token secret missing\n\tat com.ecommerce.auth.AuthService.login(AuthService.java:42)",
+            "trace_id": "trace_0008",
+            "span_id": "span_0008"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 24.5,
+            "memory_usage_bytes": 104865792,
+            "memory_usage_percent": 29.0
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": ""
+      }
+    },
+    {
+      "system_context": {
+        "objective": "Perform automated Multi-Agent Root Cause Analysis",
+        "environment": "Dockerized Microservices (Java/Spring Boot, PostgreSQL, Redis, RabbitMQ, OpenTelemetry)",
+        "current_health_score": 50.0,
+        "active_warnings": 10
+      },
+      "incident_event": {
+        "incident_id": "api-gateway_9",
+        "target_service": "api-gateway",
+        "priority_score": 107.5,
+        "severity": "CRITICAL",
+        "occurrence_count": 1
+      },
+      "infrastructure_topology": {
+        "role": "api-gateway-service",
+        "downstream_dependencies": [
+          "postgres-db"
+        ],
+        "exposed_ports": [
+          "8081:8081"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "degraded",
+        "dependency_states": {
+          "postgres-db": "healthy",
+          "redis": "healthy"
+        }
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "redis.clients.jedis.exceptions.JedisConnectionException: Failed to connect",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "level": "ERROR",
+            "content": "redis.clients.jedis.exceptions.JedisConnectionException: Failed to connect\n\tat com.ecommerce.order.OrderService.checkout(OrderService.java:87)",
+            "trace_id": "trace_0009",
+            "span_id": "span_0009"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "timestamp": "2026-08-18T02:53:37Z",
+            "cpu_percent": 26.0,
+            "memory_usage_bytes": 104866816,
+            "memory_usage_percent": 29.5
+          }
+        ]
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network-partition"
+      }
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "tag": "phase2-v1.0.0-rc1",
+  "commit": "ad9c5296a77f8a136daf06f496eaf2c6834214d5",
+  "files": [
+    {
+      "path": "phase2/__init__.py",
+      "git_blob_sha": "fdfdec0e59769227715f61cae2def8dcd29215d3"
+    },
+    {
+      "path": "phase2/config.py",
+      "git_blob_sha": "544c9d5750e6f49838fb5b5dcf76930eecce6f40"
+    },
+    {
+      "path": "phase2/filtering.py",
+      "git_blob_sha": "9a3400e54a02865cdbfe588b3a04d10974ee191d"
+    },
+    {
+      "path": "phase2/locking.py",
+      "git_blob_sha": "4abf8a90311bbaf792c7fc15e26986a96b07c13b"
+    },
+    {
+      "path": "phase2/memory.py",
+      "git_blob_sha": "fd77641a75e7ab0cbabc9424cfbb5062f87dcd22"
+    },
+    {
+      "path": "phase2/models.py",
+      "git_blob_sha": "dc186ea713d5ea9fc487b48ce773f550ceeafa29"
+    },
+    {
+      "path": "phase2/normalization.py",
+      "git_blob_sha": "3dd3fbdc8a1e75f233d0931d847b4495fb717b16"
+    },
+    {
+      "path": "phase2/phase3_contract.py",
+      "git_blob_sha": "1eb6c432359503e73b23cc02711a0dc722f47ec7"
+    },
+    {
+      "path": "phase2/pipeline.py",
+      "git_blob_sha": "26b5c3d852d6b8a5d925d1fcdde5c952677f8941"
+    },
+    {
+      "path": "phase2/schema.py",
+      "git_blob_sha": "b16417f82ee6a320186ed8b5211b26637cf0f8ea"
+    },
+    {
+      "path": "phase2_vector_memory.py",
+      "git_blob_sha": "55453db73ef515417f618eb0856b19c8cb778bd8"
+    },
+    {
+      "path": "fastmcp_server.py",
+      "git_blob_sha": "c46d1700f58be77f39db5b84dcfdc1196cae9506"
+    },
+    {
+      "path": "phase2_lifecycle.py",
+      "git_blob_sha": "18d9c6ee91da9e2a001fe9084e2f598041c06037"
+    },
+    {
+      "path": "phase2_eval.py",
+      "git_blob_sha": "b38179a5c10092de02bb6083d437f1c218edc463"
+    },
+    {
+      "path": "phase2_benchmark.py",
+      "git_blob_sha": "2bb9135ab8177e27465a1c2e0dfa7c1c857ae753"
+    },
+    {
+      "path": "llm_prompt_generator.py",
+      "git_blob_sha": "880546d6f7a0c9a61fd98bce7c9523ee1d01614e"
+    },
+    {
+      "path": "requirements-phase2.txt",
+      "git_blob_sha": "621249b612fcb216dd60e2ee12dc7ccc1df8bfc7"
+    },
+    {
+      "path": "contracts/phase2_input_v1.schema.json",
+      "git_blob_sha": "ab5e8e241b0d926727275c057e4133ee28c2cccb"
+    },
+    {
+      "path": "contracts/phase2_result_v1.schema.json",
+      "git_blob_sha": "4838a543baba6120b5654cb80ee2f3b4869f9b09"
+    },
+    {
+      "path": "contracts/phase2_batch_output_v1.schema.json",
+      "git_blob_sha": "f28c5461c6458bcd4717c9a95ab81d7752f2e52a"
+    },
+    {
+      "path": "contracts/phase3_input_v1.schema.json",
+      "git_blob_sha": "46c2e294e9b39db219f2f71c537cbc1b36a6d21f"
+    },
+    {
+      "path": "tests/phase2_test_support.py",
+      "git_blob_sha": "464ef5eb220e8707e2a6b3e0ef011f938847d948"
+    },
+    {
+      "path": "tests/verify_schema_drift.py",
+      "git_blob_sha": "50916d5be576e4ba45e0881c38ccb6d340f4fae5"
+    },
+    {
+      "path": "tests/fixtures/golden_phase1_dataset.json",
+      "git_blob_sha": "54d08357999c45637eebc72a7df0c347eb021894"
+    },
+    {
+      "path": "tests/fixtures/golden_phase3_input.json",
+      "git_blob_sha": "5136fb40d2a72ed1409bebe5ceea33e495110a26"
+    },
+    {
+      "path": "tests/fixtures/phase2_schema_contract.json",
+      "git_blob_sha": "f003108470fe92abcf061ea2cd4116f30dcae536"
+    },
+    {
+      "path": "tests/phase2/test_masking_spy.py",
+      "git_blob_sha": "6941906de469a494db496d3bdfde2578e9ad4717"
+    },
+    {
+      "path": "tests/phase2/test_mcp_timeout.py",
+      "git_blob_sha": "d5c122564cd583e3f09715fc6ef74a60154036d2"
+    },
+    {
+      "path": "tests/phase2/test_mcp_worker_runtime.py",
+      "git_blob_sha": "27528f94846e1a801e7f21c62d4ea2d382a00bd3"
+    },
+    {
+      "path": "tests/phase2/test_phase2_chroma_integration.py",
+      "git_blob_sha": "6f74f8f7605840c5bc716b5bd7b38ac61140d0de"
+    },
+    {
+      "path": "tests/phase2/test_phase2_contract.py",
+      "git_blob_sha": "da3f19e7ddb90f3603c3ddb886b129c82cb733b0"
+    },
+    {
+      "path": "tests/phase2/test_phase2_e2e.py",
+      "git_blob_sha": "29e73378536aed4a630df18f9b659a907aa3f16f"
+    },
+    {
+      "path": "tests/phase2/test_phase2_eval_metrics.py",
+      "git_blob_sha": "90ccfaeea77e7eca8bc6317500fc5f43528807ee"
+    },
+    {
+      "path": "tests/phase2/test_phase2_filtering.py",
+      "git_blob_sha": "d81c934885663840a2cb5abbb7937415be50c66c"
+    },
+    {
+      "path": "tests/phase2/test_phase2_lifecycle.py",
+      "git_blob_sha": "476af876fea87673185d9d19e80b11c46323977b"
+    },
+    {
+      "path": "tests/phase2/test_phase2_memory.py",
+      "git_blob_sha": "ea3e46925a9fb95e8ea0830ba3ee1f5492853c44"
+    },
+    {
+      "path": "tests/phase2/test_phase2_output_contract.py",
+      "git_blob_sha": "15f56fa76c0f7f0ad74baf41ddb5442b16a1b19e"
+    },
+    {
+      "path": "tests/phase2/test_phase2_pipeline.py",
+      "git_blob_sha": "626da771d102a8f21a9d56a9ee9fa8726d2df1b7"
+    },
+    {
+      "path": "tests/phase2/test_phase2_pipeline_main.py",
+      "git_blob_sha": "88fea45521367375b15b3fc959333d1c186591a4"
+    },
+    {
+      "path": "tests/phase2/test_phase2_schema.py",
+      "git_blob_sha": "f2cd7450474eaf0d2e82e106d46e01d48ae2ce35"
+    },
+    {
+      "path": "tests/phase2/test_phase2_schema_main.py",
+      "git_blob_sha": "f16c29a50100c8f8b665fe26488513baa52605f5"
+    }
+  ]
+}

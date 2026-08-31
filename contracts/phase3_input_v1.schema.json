@@ -1,0 +1,421 @@
+{
+  "$defs": {
+    "ActionabilityAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "ACTIONABLE",
+            "NON_ACTIONABLE",
+            "QUARANTINED"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "threshold": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        },
+        "signals": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Signals",
+          "type": "object"
+        },
+        "policy_version": {
+          "default": "1.0",
+          "title": "Policy Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "score",
+        "threshold",
+        "reasons"
+      ],
+      "title": "ActionabilityAssessment",
+      "type": "object"
+    },
+    "IncidentEvent": {
+      "additionalProperties": true,
+      "description": "The Phase 1 incident identity and prioritization result.",
+      "properties": {
+        "incident_id": {
+          "minLength": 1,
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "target_service": {
+          "title": "Target Service",
+          "type": "string"
+        },
+        "priority_score": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Priority Score",
+          "type": "number"
+        },
+        "severity": {
+          "default": "LOW",
+          "title": "Severity",
+          "type": "string"
+        },
+        "occurrence_count": {
+          "default": 1,
+          "minimum": 0,
+          "title": "Occurrence Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_id",
+        "target_service"
+      ],
+      "title": "IncidentEvent",
+      "type": "object"
+    },
+    "LogSample": {
+      "additionalProperties": true,
+      "properties": {
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "level": {
+          "title": "Level",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        },
+        "span_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Span Id"
+        }
+      },
+      "required": [
+        "timestamp",
+        "level",
+        "content"
+      ],
+      "title": "LogSample",
+      "type": "object"
+    },
+    "Phase2Match": {
+      "additionalProperties": false,
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "fingerprint": {
+          "title": "Fingerprint",
+          "type": "string"
+        },
+        "match_type": {
+          "enum": [
+            "exact",
+            "semantic"
+          ],
+          "title": "Match Type",
+          "type": "string"
+        },
+        "retrieval_scope": {
+          "default": "same_service",
+          "enum": [
+            "same_service",
+            "cross_service"
+          ],
+          "title": "Retrieval Scope",
+          "type": "string"
+        },
+        "target_service": {
+          "title": "Target Service",
+          "type": "string"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "log_cluster_template": {
+          "title": "Log Cluster Template",
+          "type": "string"
+        },
+        "distance": {
+          "minimum": 0.0,
+          "title": "Distance",
+          "type": "number"
+        },
+        "similarity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Similarity",
+          "type": "number"
+        },
+        "trace_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trace Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "incident_id",
+        "fingerprint",
+        "match_type",
+        "target_service",
+        "severity",
+        "log_cluster_template",
+        "distance",
+        "similarity"
+      ],
+      "title": "Phase2Match",
+      "type": "object"
+    },
+    "Phase3Context": {
+      "additionalProperties": false,
+      "description": "Phase 2 evidence bundle carried into Phase 3.",
+      "properties": {
+        "actionability": {
+          "$ref": "#/$defs/ActionabilityAssessment"
+        },
+        "retrieval": {
+          "$ref": "#/$defs/RetrievalSummary"
+        },
+        "historical_memory_evidence": {
+          "items": {
+            "$ref": "#/$defs/Phase2Match"
+          },
+          "title": "Historical Memory Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "actionability",
+        "retrieval"
+      ],
+      "title": "Phase3Context",
+      "type": "object"
+    },
+    "Phase3Source": {
+      "additionalProperties": false,
+      "description": "Provenance identifiers linking a Phase 3 input back to its Phase 2 result.",
+      "properties": {
+        "phase": {
+          "const": "phase2",
+          "default": "phase2",
+          "title": "Phase",
+          "type": "string"
+        },
+        "event_id": {
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        },
+        "correlation_id": {
+          "minLength": 1,
+          "title": "Correlation Id",
+          "type": "string"
+        },
+        "causation_id": {
+          "minLength": 1,
+          "title": "Causation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "run_id",
+        "correlation_id",
+        "causation_id"
+      ],
+      "title": "Phase3Source",
+      "type": "object"
+    },
+    "RetrievalSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "enum": [
+            "EXACT",
+            "SEMANTIC",
+            "NONE",
+            "NOT_RUN"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "candidates_considered": {
+          "minimum": 0,
+          "title": "Candidates Considered",
+          "type": "integer"
+        },
+        "matches_returned": {
+          "minimum": 0,
+          "title": "Matches Returned",
+          "type": "integer"
+        },
+        "best_similarity": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Best Similarity"
+        },
+        "min_similarity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Similarity",
+          "type": "number"
+        }
+      },
+      "required": [
+        "strategy",
+        "candidates_considered",
+        "matches_returned",
+        "min_similarity"
+      ],
+      "title": "RetrievalSummary",
+      "type": "object"
+    },
+    "TelemetryEvidence": {
+      "additionalProperties": true,
+      "properties": {
+        "log_cluster_template": {
+          "title": "Log Cluster Template",
+          "type": "string"
+        },
+        "log_samples": {
+          "items": {
+            "$ref": "#/$defs/LogSample"
+          },
+          "maxItems": 5,
+          "title": "Log Samples",
+          "type": "array"
+        },
+        "metrics_snapshot": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "maxItems": 3,
+          "title": "Metrics Snapshot",
+          "type": "array"
+        }
+      },
+      "required": [
+        "log_cluster_template"
+      ],
+      "title": "TelemetryEvidence",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Strictly validated Phase 3 input document for a single actionable incident.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/Phase3Source"
+    },
+    "system_context": {
+      "additionalProperties": true,
+      "title": "System Context",
+      "type": "object"
+    },
+    "incident_event": {
+      "$ref": "#/$defs/IncidentEvent"
+    },
+    "infrastructure_topology": {
+      "additionalProperties": true,
+      "title": "Infrastructure Topology",
+      "type": "object"
+    },
+    "service_health_status": {
+      "additionalProperties": true,
+      "title": "Service Health Status",
+      "type": "object"
+    },
+    "telemetry_evidence": {
+      "$ref": "#/$defs/TelemetryEvidence"
+    },
+    "injected_chaos_context": {
+      "additionalProperties": true,
+      "title": "Injected Chaos Context",
+      "type": "object"
+    },
+    "phase2_context": {
+      "$ref": "#/$defs/Phase3Context"
+    },
+    "agent_instruction": {
+      "minLength": 1,
+      "title": "Agent Instruction",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "incident_event",
+    "telemetry_evidence",
+    "phase2_context",
+    "agent_instruction"
+  ],
+  "title": "Phase3Input",
+  "type": "object"
+}

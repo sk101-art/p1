@@ -1,0 +1,95 @@
+{
+  "generated_at": "2026-08-30T10:00:00Z",
+  "metadata": {
+    "dataset_version": "golden_v1.0",
+    "git_sha": "91a07b07dde7272db4a6025abf499c7c179eb104"
+  },
+  "incidents": [
+    {
+      "incident_event": {
+        "incident_id": "golden_inc_001",
+        "target_service": "payment-service",
+        "severity": "CRITICAL",
+        "priority_score": 95.0,
+        "occurrence_count": 12
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "Failed to connect to gateway with api_key=AKIA1234567890123456 and password=SuperSecretPass123",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-30T09:59:00.123456Z",
+            "level": "ERROR",
+            "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+            "span_id": "00f067aa0ba902b7",
+            "content": "Connection refused api_key=AKIA1234567890123456"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "cpu_percent": 85.5,
+            "memory_usage_percent": 91.2
+          }
+        ]
+      },
+      "infrastructure_topology": {
+        "role": "payment-gateway-connector",
+        "downstream_dependencies": [
+          "postgres-db",
+          "redis-cache"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "unhealthy",
+        "health_check": "HTTP 500 Internal Server Error",
+        "dependency_states": {
+          "redis-cache": "unreachable",
+          "postgres-db": "ok"
+        }
+      },
+      "injected_chaos_context": {
+        "active_infrastructure_mutations": "network_latency 500ms injected into redis-cache"
+      }
+    },
+    {
+      "incident_event": {
+        "incident_id": "golden_inc_002",
+        "target_service": "auth-service",
+        "severity": "HIGH",
+        "priority_score": 75.0,
+        "occurrence_count": 5
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "Invalid OAuth Bearer token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.signature provided for user_id=uuid-1234",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-30T09:59:05.987654Z",
+            "level": "WARN",
+            "trace_id": "7bf92f3577b34da6a3ce929d0e0e4738",
+            "span_id": "00f067aa0ba902b9",
+            "content": "Invalid bearer token"
+          }
+        ],
+        "metrics_snapshot": [
+          {
+            "cpu_percent": 45.0,
+            "memory_usage_percent": 60.0
+          }
+        ]
+      },
+      "infrastructure_topology": {
+        "role": "auth-api",
+        "downstream_dependencies": [
+          "redis-cache"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "running",
+        "health_check": "HTTP 200 OK",
+        "dependency_states": {
+          "redis-cache": "ok"
+        }
+      },
+      "injected_chaos_context": {}
+    }
+  ]
+}

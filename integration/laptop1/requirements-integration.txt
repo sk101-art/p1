@@ -1,0 +1,15 @@
+# Integration adapter dependencies for laptop1 Phase1 <-> frozen Phase2.
+# Phase 2 deps are pinned by the frozen release; integration adds only the
+# thin orchestration/transport layer that lives in this repo.
+# NOTE: -r resolves relative to THIS file's directory -> repo root.
+-r ../../requirements-phase2.txt
+
+# --- Integration adapter deps (pinned) ---
+# HTTP server for the local integration API (binds 127.0.0.1:8102 only).
+# fastmcp 3.4.7 requires uvicorn>=0.35; pin the minimum that satisfies it.
+uvicorn==0.35.0
+# ASGI framework — must be compatible with starlette>=0.46.0 (fastmcp 3.4.7
+# requires starlette>=1.0.1, so fastapi must allow starlette>=0.46.0).
+fastapi==0.141.1
+# SQLite is stdlib; no extra driver needed.
+# Pydantic already pinned by requirements-phase2.txt (2.13.5).

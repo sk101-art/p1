@@ -1,0 +1,182 @@
+[
+  {
+    "schema_version": "1.0",
+    "source": {
+      "phase": "phase2",
+      "event_id": "evt_42da02c76956f510c866acc732fe10ae7e013f69d32b1fff671934e52fba8e60",
+      "run_id": "run_b11298a3163bc09bba346f71bf6593a3",
+      "correlation_id": "trace_51c6590dfe5caecc020e7ac84ecfb050",
+      "causation_id": "evt_8d3dbfecba153942d9c5ea4d62e652585f64069be264456e4d62a3287938e53e"
+    },
+    "system_context": {
+      "incident_fingerprint_sha256": "2272fbb5b21ede378cfada4fbaf26e6757dfedec41d23724e9c3db867ba559a6"
+    },
+    "incident_event": {
+      "incident_id": "golden_inc_001",
+      "target_service": "payment-service",
+      "priority_score": 95.0,
+      "severity": "CRITICAL",
+      "occurrence_count": 12
+    },
+    "infrastructure_topology": {
+      "role": "payment-gateway-connector",
+      "downstream_dependencies": [
+        "postgres-db",
+        "redis-cache"
+      ]
+    },
+    "service_health_status": {
+      "docker_status": "unhealthy",
+      "health_check": "HTTP 500 Internal Server Error",
+      "dependency_states": {
+        "redis-cache": "unreachable",
+        "postgres-db": "ok"
+      }
+    },
+    "telemetry_evidence": {
+      "log_cluster_template": "Failed to connect to gateway with api_key <REDACTED> and password <REDACTED>",
+      "log_samples": [
+        {
+          "timestamp": "2026-08-30T09:59:00.123456Z",
+          "level": "ERROR",
+          "content": "Connection refused api_key <REDACTED>",
+          "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+          "span_id": "00f067aa0ba902b7"
+        }
+      ],
+      "metrics_snapshot": [
+        {
+          "cpu_percent": 85.5,
+          "memory_usage_percent": 91.2
+        }
+      ]
+    },
+    "injected_chaos_context": {
+      "active_infrastructure_mutations": "network_latency 500ms injected into redis-cache"
+    },
+    "phase2_context": {
+      "actionability": {
+        "decision": "ACTIONABLE",
+        "score": 1.0,
+        "threshold": 0.35,
+        "reasons": [
+          "severity:CRITICAL",
+          "elevated_priority",
+          "repeated_occurrence",
+          "service_not_running",
+          "health_check_failed",
+          "dependency_degraded",
+          "error_level_telemetry",
+          "failure_semantics",
+          "correlated_infrastructure_mutation",
+          "score_meets_threshold"
+        ],
+        "signals": {
+          "severity": 0.45,
+          "priority": 0.2375,
+          "recurrence": 0.101098,
+          "health": 0.5,
+          "log_level": 0.15,
+          "error_semantics": 0.12,
+          "correlated_chaos": 0.08
+        },
+        "policy_version": "1.0"
+      },
+      "retrieval": {
+        "strategy": "NONE",
+        "candidates_considered": 0,
+        "matches_returned": 0,
+        "best_similarity": null,
+        "min_similarity": 0.4
+      },
+      "historical_memory_evidence": []
+    },
+    "agent_instruction": "Analyze only the supplied telemetry and historical evidence. Determine the root cause for payment-service, cite concrete evidence, distinguish same-service from cross-service history, state uncertainty, and return a typed remediation proposal for shadow validation. Historical similarity is evidence, not execution approval."
+  },
+  {
+    "schema_version": "1.0",
+    "source": {
+      "phase": "phase2",
+      "event_id": "evt_8767b0bb6178711f4522c7c93e376f668a75c7c2ac62d5da551534feeb739c6e",
+      "run_id": "run_b11298a3163bc09bba346f71bf6593a3",
+      "correlation_id": "trace_51c6590dfe5caecc020e7ac84ecfb050",
+      "causation_id": "evt_0ea641993128fd5cb7d5c118a44dee13ecbdc1b07ab8c609ba7bd195b50ada6e"
+    },
+    "system_context": {
+      "incident_fingerprint_sha256": "ff637c4ceb77fc2b665339fe2997c4b7561b8b000f5656488b74ef7a4f8b0f2b"
+    },
+    "incident_event": {
+      "incident_id": "golden_inc_002",
+      "target_service": "auth-service",
+      "priority_score": 75.0,
+      "severity": "HIGH",
+      "occurrence_count": 5
+    },
+    "infrastructure_topology": {
+      "role": "auth-api",
+      "downstream_dependencies": [
+        "redis-cache"
+      ]
+    },
+    "service_health_status": {
+      "docker_status": "running",
+      "health_check": "HTTP 200 OK",
+      "dependency_states": {
+        "redis-cache": "ok"
+      }
+    },
+    "telemetry_evidence": {
+      "log_cluster_template": "Invalid OAuth Bearer <REDACTED> [REDACTED_JWT_TOKEN] provided for user_id=uuid-1234",
+      "log_samples": [
+        {
+          "timestamp": "2026-08-30T09:59:05.987654Z",
+          "level": "WARN",
+          "content": "Invalid bearer <REDACTED>",
+          "trace_id": "7bf92f3577b34da6a3ce929d0e0e4738",
+          "span_id": "00f067aa0ba902b9"
+        }
+      ],
+      "metrics_snapshot": [
+        {
+          "cpu_percent": 45.0,
+          "memory_usage_percent": 60.0
+        }
+      ]
+    },
+    "injected_chaos_context": {},
+    "phase2_context": {
+      "actionability": {
+        "decision": "ACTIONABLE",
+        "score": 0.888122,
+        "threshold": 0.35,
+        "reasons": [
+          "severity:HIGH",
+          "elevated_priority",
+          "repeated_occurrence",
+          "health_check_failed",
+          "error_level_telemetry",
+          "score_meets_threshold"
+        ],
+        "signals": {
+          "severity": 0.35,
+          "priority": 0.1875,
+          "recurrence": 0.070622,
+          "health": 0.2,
+          "log_level": 0.08,
+          "error_semantics": 0.0,
+          "correlated_chaos": 0.0
+        },
+        "policy_version": "1.0"
+      },
+      "retrieval": {
+        "strategy": "NONE",
+        "candidates_considered": 0,
+        "matches_returned": 0,
+        "best_similarity": null,
+        "min_similarity": 0.4
+      },
+      "historical_memory_evidence": []
+    },
+    "agent_instruction": "Analyze only the supplied telemetry and historical evidence. Determine the root cause for auth-service, cite concrete evidence, distinguish same-service from cross-service history, state uncertainty, and return a typed remediation proposal for shadow validation. Historical similarity is evidence, not execution approval."
+  }
+]

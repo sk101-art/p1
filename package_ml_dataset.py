@@ -13,6 +13,14 @@ from utils import (
     correlate_chaos_event,
     project_path
 )
+
+# Integration hook (Phase 6): stdlib-only notifier to the local laptop1
+# Phase1<->Phase2 bridge. Imported lazily-guarded so Phase 1 never depends on
+# the integration package at import time.
+try:
+    from integration.laptop1.phase1_notifier import notify_phase1_dataset
+except Exception:  # pragma: no cover - integration package optional at runtime
+    notify_phase1_dataset = None
 from phase1_schema import (
     UnifiedMasterDataset,
     DatasetMeta,
@@ -278,6 +286,20 @@ def package_dataset():
     # 6. Atomic write
     atomic_write_json(OUTPUT_DATASET_FILE, serialized_payload)
     gc.collect()
+
+    # 6b. Integration hook (Phase 6): notify the local laptop1 bridge that a
+    # fresh canonical dataset is available. Best-effort; never blocks or fails
+    # the Phase 1 packaging contract.
+    if notify_phase1_dataset is not None:
+        try:
+            notify_phase1_dataset(
+                dataset_path=OUTPUT_DATASET_FILE,
+                generated_at=now_iso,
+                git_sha=git_sha if git_sha != "unknown" else None,
+                incident_count=len(packaged_incidents),
+            )
+        except Exception as _notify_err:  # pragma: no cover - defensive
+            logger.warning(f"Integration notify skipped: {_notify_err}")
 
     elapsed = time.time() - start_time
     severity_counts = {}

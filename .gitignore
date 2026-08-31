@@ -32,3 +32,29 @@ frontend_data/*.lock
 frontend_data/health_warnings.log
 *.lock
 !frontend_data/.gitkeep
+
+# --- laptop1 Phase1 <-> frozen Phase2 integration ---
+# Durable local runtime state (SQLite WAL, logs, pid). Never commit.
+runtime/
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.log
+.env
+.venv/
+.venv-phase1/
+.venv-phase2/
+__pycache__/
+*.pyc
+
+# Temp/scratch files used during integration setup
+_import_phase2.py
+_gen_manifest.py
+_import_log.txt
+_manifest_log.txt
+_verify_log.txt
+_tree_check.txt
+_phase2_tree.txt
+*.tmp

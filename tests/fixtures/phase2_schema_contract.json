@@ -1,0 +1,37 @@
+{
+  "Phase1Incident": {
+    "properties": [
+      "incident_event",
+      "infrastructure_topology",
+      "injected_chaos_context",
+      "service_health_status",
+      "system_context",
+      "telemetry_evidence"
+    ]
+  },
+  "Phase2RetrievedIncident": {
+    "properties": [
+      "distance",
+      "fingerprint",
+      "incident_id",
+      "log_cluster_template",
+      "match_type",
+      "retrieval_scope",
+      "severity",
+      "similarity",
+      "target_service",
+      "trace_ids"
+    ]
+  },
+  "Phase2BatchOutput": {
+    "properties": [
+      "event_type",
+      "incidents",
+      "index_report",
+      "phase",
+      "produced_at",
+      "schema_version",
+      "source_generated_at"
+    ]
+  }
+}

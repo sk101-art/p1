@@ -1,0 +1,233 @@
+{
+  "$defs": {
+    "IncidentEvent": {
+      "additionalProperties": true,
+      "description": "The Phase 1 incident identity and prioritization result.",
+      "properties": {
+        "incident_id": {
+          "minLength": 1,
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "target_service": {
+          "title": "Target Service",
+          "type": "string"
+        },
+        "priority_score": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Priority Score",
+          "type": "number"
+        },
+        "severity": {
+          "default": "LOW",
+          "title": "Severity",
+          "type": "string"
+        },
+        "occurrence_count": {
+          "default": 1,
+          "minimum": 0,
+          "title": "Occurrence Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_id",
+        "target_service"
+      ],
+      "title": "IncidentEvent",
+      "type": "object"
+    },
+    "LogSample": {
+      "additionalProperties": true,
+      "properties": {
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "level": {
+          "title": "Level",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        },
+        "span_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Span Id"
+        }
+      },
+      "required": [
+        "timestamp",
+        "level",
+        "content"
+      ],
+      "title": "LogSample",
+      "type": "object"
+    },
+    "Phase1Incident": {
+      "additionalProperties": true,
+      "description": "Compatible reader for the additive Phase 1 incident contract.",
+      "properties": {
+        "incident_event": {
+          "$ref": "#/$defs/IncidentEvent"
+        },
+        "telemetry_evidence": {
+          "$ref": "#/$defs/TelemetryEvidence"
+        },
+        "system_context": {
+          "additionalProperties": true,
+          "title": "System Context",
+          "type": "object"
+        },
+        "infrastructure_topology": {
+          "additionalProperties": true,
+          "title": "Infrastructure Topology",
+          "type": "object"
+        },
+        "service_health_status": {
+          "additionalProperties": true,
+          "title": "Service Health Status",
+          "type": "object"
+        },
+        "injected_chaos_context": {
+          "additionalProperties": true,
+          "title": "Injected Chaos Context",
+          "type": "object"
+        }
+      },
+      "required": [
+        "incident_event",
+        "telemetry_evidence"
+      ],
+      "title": "Phase1Incident",
+      "type": "object"
+    },
+    "TelemetryEvidence": {
+      "additionalProperties": true,
+      "properties": {
+        "log_cluster_template": {
+          "title": "Log Cluster Template",
+          "type": "string"
+        },
+        "log_samples": {
+          "items": {
+            "$ref": "#/$defs/LogSample"
+          },
+          "maxItems": 5,
+          "title": "Log Samples",
+          "type": "array"
+        },
+        "metrics_snapshot": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "maxItems": 3,
+          "title": "Metrics Snapshot",
+          "type": "array"
+        }
+      },
+      "required": [
+        "log_cluster_template"
+      ],
+      "title": "TelemetryEvidence",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical per-incident boundary used by files, HTTP, or an event bus.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "minLength": 1,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "run_id": {
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "correlation_id": {
+      "minLength": 1,
+      "title": "Correlation Id",
+      "type": "string"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causation Id"
+    },
+    "idempotency_key": {
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "source": {
+      "const": "phase1",
+      "default": "phase1",
+      "title": "Source",
+      "type": "string"
+    },
+    "produced_at": {
+      "title": "Produced At",
+      "type": "string"
+    },
+    "dataset_generated_at": {
+      "title": "Dataset Generated At",
+      "type": "string"
+    },
+    "dataset_metadata": {
+      "additionalProperties": true,
+      "title": "Dataset Metadata",
+      "type": "object"
+    },
+    "incident": {
+      "$ref": "#/$defs/Phase1Incident"
+    }
+  },
+  "required": [
+    "run_id",
+    "correlation_id",
+    "idempotency_key",
+    "produced_at",
+    "dataset_generated_at",
+    "incident"
+  ],
+  "title": "Phase2InputEnvelope",
+  "type": "object"
+}
