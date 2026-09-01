@@ -1,42 +1,38 @@
-# ==============================================================================
-# Auto-SRE Platform - laptop1 Phase1 <-> frozen Phase2 Integration
-# Stop script: gracefully stops the durable local integration service.
-# ==============================================================================
-
 $ErrorActionPreference = "Stop"
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$PidFile = Join-Path $RepoRoot "runtime\state\integration.pid"
 
-$ROOT = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$STATE = Join-Path $ROOT "runtime\state"
-$pidFile = Join-Path $STATE "integration.pid"
-
-Write-Host "=== [laptop1 integration] Stopping service ===" -ForegroundColor Cyan
-
-if (-not (Test-Path $pidFile)) {
-    Write-Host "[-] No PID file found at $pidFile. Service may not be running." -ForegroundColor Yellow
+if (-not (Test-Path $PidFile)) {
+    Write-Host "[-] No integration PID file; nothing to stop." -ForegroundColor Yellow
     exit 0
 }
 
-$pid = (Get-Content $pidFile -Raw).Trim()
-if (-not $pid) {
-    Write-Host "[-] PID file empty." -ForegroundColor Yellow
-    Remove-Item $pidFile -Force
-    exit 0
+$RawProcessId = (Get-Content $PidFile -Raw).Trim()
+$ProcessId = 0
+if (-not [int]::TryParse($RawProcessId, [ref]$ProcessId) -or $ProcessId -le 0) {
+    Write-Host "[-] Invalid PID file; refusing to stop any process." -ForegroundColor Red
+    exit 1
 }
 
-try {
-    $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
-    if ($proc) {
-        # Try graceful termination first.
-        $proc.CloseMainWindow() | Out-Null
-        if (-not $proc.WaitForExit(5000)) {
-            Stop-Process -Id $pid -Force
-        }
-        Write-Host "[+] Stopped integration service (PID $pid)." -ForegroundColor Green
-    } else {
-        Write-Host "[-] Process $pid not running." -ForegroundColor Yellow
-    }
-} catch {
-    Write-Host "[!] Error stopping process ${pid}: $_" -ForegroundColor Red
-} finally {
-    Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
+$CimProcess = Get-CimInstance Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction SilentlyContinue
+if (-not $CimProcess) {
+    Remove-Item $PidFile -Force
+    Write-Host "[-] Recorded process is no longer running." -ForegroundColor Yellow
+    exit 0
 }
+if ($CimProcess.CommandLine -notmatch "integration\.laptop1\.main") {
+    Write-Host "[-] PID $ProcessId is not the Laptop 1 integration service; refusing to stop it." -ForegroundColor Red
+    exit 1
+}
+
+Stop-Process -Id $ProcessId -ErrorAction Stop
+$Deadline = (Get-Date).AddSeconds(5)
+while ((Get-Process -Id $ProcessId -ErrorAction SilentlyContinue) -and
+       (Get-Date) -lt $Deadline) {
+    Start-Sleep -Milliseconds 200
+}
+if (Get-Process -Id $ProcessId -ErrorAction SilentlyContinue) {
+    Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+}
+Remove-Item $PidFile -Force
+Write-Host "[+] Stopped Laptop 1 integration service PID $ProcessId." -ForegroundColor Green

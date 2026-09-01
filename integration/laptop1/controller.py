@@ -1,15 +1,4 @@
-"""Integration controller: orchestrates a single Phase1->Phase2 run.
-
-The controller is the durable brain of the bridge. For each run it:
-1. Loads the canonical Phase 1 dataset (with a freshness guard).
-2. Creates a durable run record (PENDING -> RUNNING).
-3. Invokes the frozen Phase 2 runtime.
-4. Persists per-incident Phase 2 result summaries.
-5. Marks the run SUCCEEDED / FAILED and records outcome counts.
-
-All state transitions are written to the StateStore so recovery can resume.
-"""
-
+"""Durable Phase 1 -> frozen Phase 2 -> Phase 3 boundary orchestration."""
 from __future__ import annotations
 
 import json
@@ -21,16 +10,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from .models import (
-    IntegrationRunRecord,
-    Phase2Outcome,
-    Phase2ResultSummary,
-    RunStatus,
-)
-from .phase2_runtime import Phase2Runtime
+from .artifact_manager import ArtifactManager
+from .models import IntegrationRunRecord, Phase2Outcome, Phase2ResultSummary, RunStatus
 from .state_store import StateStore
 
-# A dataset older than this (seconds) is rejected as stale.
 DATASET_MAX_AGE_SECONDS = int(os.getenv("LAPTOP1_DATASET_MAX_AGE_SECONDS", "86400"))
 
 
@@ -38,201 +21,150 @@ def _utcnow_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _parse_iso(ts: str) -> Optional[float]:
+def _parse_iso(value: str) -> Optional[float]:
     try:
-        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        return dt.timestamp()
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
     except Exception:
         return None
 
 
 class IntegrationController:
-    def __init__(self, runtime: Phase2Runtime, store: StateStore) -> None:
+    def __init__(self, runtime: Any, store: StateStore,
+                 artifacts: Optional[ArtifactManager] = None) -> None:
         self.runtime = runtime
         self.store = store
+        self.artifacts = artifacts
 
     def _load_dataset(self, dataset_path: str | Path) -> tuple[dict[str, Any], str, Optional[str], int]:
         path = Path(dataset_path)
         if not path.exists():
             raise FileNotFoundError(f"Phase 1 dataset not found: {path}")
-        with open(path, "r", encoding="utf-8") as f:
-            raw = json.load(f)
-
+        raw = json.loads(path.read_text(encoding="utf-8"))
         generated_at = raw.get("generated_at")
         if not generated_at:
             raise ValueError("Dataset missing 'generated_at'")
-        ts = _parse_iso(generated_at)
-        if ts is not None:
-            age = time.time() - ts
-            if age > DATASET_MAX_AGE_SECONDS:
-                raise ValueError(
-                    f"Dataset stale: age {age:.0f}s exceeds max {DATASET_MAX_AGE_SECONDS}s"
-                )
-
-        git_sha = None
-        incident_count = 0
-        meta = raw.get("metadata")
-        if isinstance(meta, dict):
-            git_sha = meta.get("git_sha")
+        timestamp = _parse_iso(generated_at)
+        if timestamp is not None and time.time() - timestamp > DATASET_MAX_AGE_SECONDS:
+            raise ValueError("Dataset stale: generated_at exceeds configured maximum age")
+        metadata = raw.get("metadata")
+        git_sha = metadata.get("git_sha") if isinstance(metadata, dict) else None
         incidents = raw.get("incidents") or []
-        incident_count = len(incidents)
-        return raw, generated_at, git_sha, incident_count
+        return raw, generated_at, git_sha, len(incidents)
 
-    def run_once(
-        self,
-        dataset_path: str | Path,
-        *,
-        run_id: Optional[str] = None,
-    ) -> IntegrationRunRecord:
+    def run_once(self, dataset_path: str | Path, *,
+                 run_id: Optional[str] = None) -> IntegrationRunRecord:
         run_id = run_id or f"run_{uuid.uuid4().hex}"
-
-        # Create a PENDING record first so failures are durably recorded.
-        record = IntegrationRunRecord(
-            run_id=run_id,
-            dataset_generated_at="",
-            dataset_incident_count=0,
-            status=RunStatus.PENDING,
-        )
-        self.store.create_run(record)
+        existing = self.store.get_run(run_id)
+        if existing and existing.status == RunStatus.PHASE3_INPUTS_READY:
+            return existing
+        self.store.create_run(IntegrationRunRecord(
+            run_id=run_id, dataset_generated_at="", status=RunStatus.PENDING))
 
         try:
-            raw, generated_at, git_sha, incident_count = self._load_dataset(dataset_path)
+            # A crash after the durable Phase 2 file was recorded resumes only
+            # the cheap Phase 3 materialization step; Phase 2 is not repeated.
+            existing = self.store.get_run(run_id)
+            if (self.artifacts and existing and existing.phase2_output_path
+                    and Path(existing.phase2_output_path).is_file()):
+                phase3 = self.artifacts.write_phase3_payloads(
+                    run_id, existing.phase2_output_path)
+                self.store.update_run(
+                    run_id, status=RunStatus.PHASE3_INPUTS_READY,
+                    finished_at=_utcnow_iso(),
+                    phase3_manifest_path=phase3["manifest_path"],
+                    phase3_payload_count=phase3["payload_count"], error=None)
+                return self.store.get_run(run_id)  # type: ignore[return-value]
 
-            # Update record with actual dataset metadata.
-            self.store.update_run(
-                run_id,
-                dataset_generated_at=generated_at,
-                dataset_git_sha=git_sha,
-                dataset_incident_count=incident_count,
-                status=RunStatus.RUNNING,
-                started_at=_utcnow_iso(),
-            )
+            raw, generated_at, git_sha, incident_count = self._load_dataset(dataset_path)
+            update: dict[str, Any] = {
+                "dataset_generated_at": generated_at,
+                "dataset_git_sha": git_sha,
+                "dataset_incident_count": incident_count,
+                "status": RunStatus.RUNNING,
+                "started_at": existing.started_at if existing and existing.started_at else _utcnow_iso(),
+                "finished_at": None,
+                "error": None,
+            }
+            if self.artifacts:
+                phase1 = self.artifacts.snapshot_dataset(run_id, dataset_path)
+                update.update(phase1_artifact_path=phase1["path"],
+                              phase1_sha256=phase1["sha256"])
+            self.store.update_run(run_id, **update)
 
             if not self.runtime.ready:
                 self.runtime.warm()
-            batch: Any = self.runtime.process(raw)
-
+            batch = self.runtime.process(raw)
+            results = getattr(batch, "incidents", None)
+            if results is None and isinstance(batch, dict):
+                results = batch.get("incidents")
+            results = results or []
             outcome_counts: dict[str, int] = {}
-            results = getattr(batch, "incidents", None) or []
-            for res in results:
-                outcome = self._classify(res)
+            for result in results:
+                outcome = self._classify(result)
                 outcome_counts[outcome.value] = outcome_counts.get(outcome.value, 0) + 1
-                self.store.insert_result(
-                    self._summarize(run_id, res, outcome)
-                )
+                self.store.insert_result(self._summarize(run_id, result, outcome))
 
-            self.store.update_run(
-                run_id,
-                status=RunStatus.SUCCEEDED,
-                finished_at=_utcnow_iso(),
-                phase2_outcome_counts=outcome_counts,
-            )
-            record.status = RunStatus.SUCCEEDED
-            record.phase2_outcome_counts = outcome_counts
-            return record
+            if not self.artifacts:
+                self.store.update_run(
+                    run_id, status=RunStatus.SUCCEEDED, finished_at=_utcnow_iso(),
+                    phase2_outcome_counts=outcome_counts)
+                return self.store.get_run(run_id)  # type: ignore[return-value]
 
-        except Exception as exc:  # noqa: BLE001 - durable capture
+            phase2 = self.artifacts.write_phase2_batch(run_id, batch)
             self.store.update_run(
-                run_id,
-                status=RunStatus.FAILED,
+                run_id, phase2_outcome_counts=outcome_counts,
+                phase2_output_path=phase2["path"], phase2_sha256=phase2["sha256"])
+            phase3 = self.artifacts.write_phase3_payloads(run_id, phase2["path"])
+            self.store.update_run(
+                run_id, status=RunStatus.PHASE3_INPUTS_READY,
                 finished_at=_utcnow_iso(),
-                error=f"{type(exc).__name__}: {exc}",
-            )
-            record.status = RunStatus.FAILED
-            record.error = f"{type(exc).__name__}: {exc}"
-            # Surface for logs but do not crash the service loop.
+                phase3_manifest_path=phase3["manifest_path"],
+                phase3_payload_count=phase3["payload_count"])
+            return self.store.get_run(run_id)  # type: ignore[return-value]
+        except Exception as exc:  # noqa: BLE001
+            self.store.update_run(
+                run_id, status=RunStatus.FAILED, finished_at=_utcnow_iso(),
+                error=f"{type(exc).__name__}: {exc}")
             traceback.print_exc()
-            return record
+            return self.store.get_run(run_id)  # type: ignore[return-value]
 
     @staticmethod
-    def _classify(res: Any) -> Phase2Outcome:
-        # Phase2Result carries the decision inside .actionability.decision.
-        decision = None
-        actionability = getattr(res, "actionability", None)
-        if actionability is not None:
-            decision = getattr(actionability, "decision", None)
-        if decision is None and isinstance(res, dict):
-            actionability = res.get("actionability")
-            if isinstance(actionability, dict):
-                decision = actionability.get("decision")
-            else:
-                decision = res.get("decision")
+    def _classify(result: Any) -> Phase2Outcome:
+        actionability = getattr(result, "actionability", None)
+        if actionability is None and isinstance(result, dict):
+            actionability = result.get("actionability")
+        decision = getattr(actionability, "decision", None)
+        if decision is None and isinstance(actionability, dict):
+            decision = actionability.get("decision")
         if decision in ("ACTIONABLE", "PROVISIONAL"):
             return Phase2Outcome.ACTIONABLE
-        if decision in ("QUARANTINED",):
+        if decision == "QUARANTINED":
             return Phase2Outcome.QUARANTINED
         if decision in ("NON_ACTIONABLE", "BENIGN"):
             return Phase2Outcome.NON_ACTIONABLE
         return Phase2Outcome.ERROR
 
     @staticmethod
-    def _summarize(run_id: str, res: Any, outcome: Phase2Outcome) -> Phase2ResultSummary:
-        def _get(attr: str, default=None):
-            if hasattr(res, attr):
-                return getattr(res, attr)
-            if isinstance(res, dict):
-                return res.get(attr, default)
-            return default
+    def _summarize(run_id: str, result: Any,
+                   outcome: Phase2Outcome) -> Phase2ResultSummary:
+        def get(value: Any, name: str, default: Any = None) -> Any:
+            return value.get(name, default) if isinstance(value, dict) else getattr(value, name, default)
 
-        # Phase2Result stores matches in a list; take the best (highest similarity).
-        matches = _get("matches") or []
+        matches = get(result, "matches", []) or []
         match = matches[0] if matches else None
-        matched_id = None
-        similarity = None
-        if match is not None:
-            matched_id = getattr(match, "incident_id", None) or (
-                match.get("incident_id") if isinstance(match, dict) else None
-            )
-            similarity = getattr(match, "similarity", None) or (
-                match.get("similarity") if isinstance(match, dict) else None
-            )
-
-        # Decision lives under actionability.
-        actionability = _get("actionability")
-        decision = None
-        if actionability is not None:
-            decision = getattr(actionability, "decision", None) or (
-                actionability.get("decision") if isinstance(actionability, dict) else None
-            )
-
-        event_id = _get("event_id") or f"evt_{run_id}"
-        incident_id = _get("incident_id")
-        target_service = None
-        severity = None
-        reasons = []
-        agent_instruction = None
-        ctx = _get("incident_context")
-        if ctx is not None:
-            ev = getattr(ctx, "incident_event", None) or (
-                ctx.get("incident_event") if isinstance(ctx, dict) else None
-            )
-            if ev is not None:
-                target_service = getattr(ev, "target_service", None) or (
-                    ev.get("target_service") if isinstance(ev, dict) else None
-                )
-                severity = getattr(ev, "severity", None) or (
-                    ev.get("severity") if isinstance(ev, dict) else None
-                )
-        if actionability is not None:
-            reasons = list(
-                getattr(actionability, "reasons", []) or (
-                    actionability.get("reasons", []) if isinstance(actionability, dict) else []
-                )
-            )
-
+        actionability = get(result, "actionability")
+        context = get(result, "incident_context")
+        event = get(context, "incident_event") if context is not None else None
         return Phase2ResultSummary(
-            event_id=str(event_id),
-            run_id=run_id,
-            outcome=outcome,
-            decision=decision,
-            target_service=target_service,
-            severity=severity,
-            matched_incident_id=matched_id,
-            similarity=similarity,
-            reasons=reasons,
-            agent_instruction=agent_instruction,
-            incident_id=incident_id,
-        )
+            event_id=str(get(result, "event_id") or f"evt_{run_id}"),
+            run_id=run_id, incident_id=get(result, "incident_id"), outcome=outcome,
+            decision=get(actionability, "decision") if actionability is not None else None,
+            target_service=get(event, "target_service") if event is not None else None,
+            severity=get(event, "severity") if event is not None else None,
+            matched_incident_id=get(match, "incident_id") if match is not None else None,
+            similarity=get(match, "similarity") if match is not None else None,
+            reasons=list(get(actionability, "reasons", []) or []) if actionability is not None else [],
+            agent_instruction=None)
 
 
 __all__ = ["IntegrationController"]

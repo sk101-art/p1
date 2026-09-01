@@ -1,42 +1,33 @@
-# ==============================================================================
-# Auto-SRE Platform - laptop1 Phase1 <-> frozen Phase2 Integration
-# Verify script: checks frozen Phase 2 integrity + integration service health.
-# ==============================================================================
-
 $ErrorActionPreference = "Stop"
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+Set-Location $RepoRoot
+$Phase1Python = Join-Path $RepoRoot ".venv-phase1\Scripts\python.exe"
+$Phase2Python = Join-Path $RepoRoot ".venv-phase2\Scripts\python.exe"
 
-$ROOT = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Set-Location $ROOT
-
-$PY = Join-Path $ROOT ".venv-phase2\Scripts\python.exe"
-
-Write-Host "=== [laptop1 integration] Verification ===" -ForegroundColor Cyan
-
-# 1. Frozen Phase 2 integrity
-Write-Host "`n[1/3] Verifying frozen Phase 2 files..." -ForegroundColor Yellow
-& $PY integration/verify_frozen_phase2.py
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[-] Frozen Phase 2 verification FAILED." -ForegroundColor Red
-    exit 1
-}
-Write-Host "[+] Frozen Phase 2 files intact." -ForegroundColor Green
-
-# 2. Integration service health
-Write-Host "`n[2/3] Checking integration service health (127.0.0.1:8102)..." -ForegroundColor Yellow
-try {
-    $resp = Invoke-RestMethod -Uri "http://127.0.0.1:8102/health" -TimeoutSec 5
-    Write-Host "[+] Health: $($resp | ConvertTo-Json -Compress)" -ForegroundColor Green
-} catch {
-    Write-Host "[!] Integration service not reachable on 127.0.0.1:8102. Start it with run-laptop1-integration.ps1." -ForegroundColor Yellow
+foreach ($Python in @($Phase1Python, $Phase2Python)) {
+    if (-not (Test-Path $Python)) {
+        Write-Host "[-] Missing interpreter: $Python" -ForegroundColor Red
+        exit 1
+    }
 }
 
-# 3. SQLite state store presence
-Write-Host "`n[3/3] Checking durable state store..." -ForegroundColor Yellow
-$db = Join-Path $ROOT "runtime\state\laptop1_pipeline.db"
-if (Test-Path $db) {
-    Write-Host "[+] State store present: $db" -ForegroundColor Green
-} else {
-    Write-Host "[!] State store not yet created (will be created on first run)." -ForegroundColor Yellow
+function Invoke-Gate([string]$Name, [scriptblock]$Command) {
+    Write-Host "`n[*] $Name" -ForegroundColor Yellow
+    & $Command
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[-] $Name failed with exit code $LASTEXITCODE" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    Write-Host "[+] $Name passed" -ForegroundColor Green
 }
 
-Write-Host "`n=== Verification complete ===" -ForegroundColor Cyan
+Invoke-Gate "Frozen Phase 2 manifest" { & $Phase2Python "integration\verify_frozen_phase2.py" }
+Invoke-Gate "Phase 1 tests" { & $Phase1Python -m pytest tests -m "not runtime" --ignore=tests/phase2 --ignore=tests/integration }
+Invoke-Gate "Phase 2 tests" { & $Phase2Python -m pytest tests/phase2 -m "not runtime" }
+Invoke-Gate "Laptop 1 integration tests" { & $Phase2Python -m pytest tests/integration -m "not runtime" }
+Invoke-Gate "Schema drift" { & $Phase2Python "tests/verify_schema_drift.py" }
+Invoke-Gate "Phase 1 dependencies" { & $Phase1Python -m pip check }
+Invoke-Gate "Phase 2 dependencies" { & $Phase2Python -m pip check }
+Invoke-Gate "Orchestration latency report" { & $Phase2Python "integration/laptop1/measure_latency.py" }
+Write-Host "`n=== All Laptop 1 verification gates passed ===" -ForegroundColor Cyan
+

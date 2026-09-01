@@ -1,73 +1,71 @@
-"""Phase 17: measure end-to-end run_once latency (p50/p95).
-
-Warms the Phase 2 runtime once, then times repeated ``run_once`` calls against
-a small synthetic dataset to capture steady-state latency percentiles.
-
-Usage:
-    python integration/laptop1/measure_latency.py [iterations] [num_incidents]
-"""
+"""Measure Laptop 1 orchestration overhead without Phase 2 inference time."""
 from __future__ import annotations
 
+import json
+import platform
 import statistics
 import sys
+import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
-# Ensure the worktree root is importable when run directly.
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from integration.laptop1.controller import IntegrationController
-from integration.laptop1.phase2_runtime import Phase2Runtime
+from integration.laptop1.models import IntegrationRunRecord, RunStatus
 from integration.laptop1.state_store import StateStore
-from tests.integration.fixtures.fixture_loader import get_or_create
 
 
-def _percentile(values: list[float], pct: float) -> float:
-    if not values:
-        return 0.0
+def percentile(values: list[float], percentage: float) -> float:
     ordered = sorted(values)
-    k = (len(ordered) - 1) * (pct / 100.0)
-    f = int(k)
-    c = min(f + 1, len(ordered) - 1)
-    if f == c:
-        return ordered[f]
-    return ordered[f] + (ordered[c] - ordered[f]) * (k - f)
+    position = (len(ordered) - 1) * percentage / 100
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
 
 
 def main() -> int:
-    iterations = int(sys.argv[1]) if len(sys.argv) > 1 else 5
-    num_incidents = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-
-    dataset_path = get_or_create(num_incidents=num_incidents)
-    store = StateStore(":memory:")
-    runtime = Phase2Runtime()
-    ctrl = IntegrationController(runtime, store)
-
-    print(f"Warming Phase 2 runtime (embedder + chromadb)...")
-    runtime.warm()
-    print("Runtime ready.")
-
+    iterations = int(sys.argv[1]) if len(sys.argv) > 1 else 200
+    if iterations < 20:
+        raise ValueError("at least 20 iterations are required")
     samples: list[float] = []
-    for i in range(iterations):
-        run_id = f"latency_{i}"
-        t0 = time.perf_counter()
-        rec = ctrl.run_once(dataset_path, run_id=run_id)
-        dt = time.perf_counter() - t0
-        samples.append(dt)
-        print(f"  run {i}: status={rec.status.value} {dt*1000:.1f} ms")
+    with tempfile.TemporaryDirectory(prefix="laptop1-latency-") as temp:
+        store = StateStore(Path(temp) / "state.db")
+        for index in range(iterations):
+            started = time.perf_counter()
+            run_id = f"latency_{index}"
+            store.create_run(IntegrationRunRecord(
+                run_id=run_id, dataset_generated_at="benchmark",
+                status=RunStatus.PENDING))
+            store.update_run(run_id, status=RunStatus.RUNNING)
+            store.update_run(run_id, status=RunStatus.PHASE3_INPUTS_READY,
+                             phase3_payload_count=1)
+            assert store.get_run(run_id) is not None
+            samples.append((time.perf_counter() - started) * 1000)
+        store.close()
 
-    runtime.close()
-
-    if samples:
-        print("\n=== Latency summary (ms) ===")
-        print(f"  iterations : {len(samples)}")
-        print(f"  mean       : {statistics.mean(samples)*1000:.1f}")
-        print(f"  min        : {min(samples)*1000:.1f}")
-        print(f"  p50        : {_percentile(samples, 50)*1000:.1f}")
-        print(f"  p95        : {_percentile(samples, 95)*1000:.1f}")
-        print(f"  max        : {max(samples)*1000:.1f}")
+    report = {
+        "schema_version": "1.0",
+        "scope": "orchestration_sqlite_state_transitions_only",
+        "excludes": ["embedding", "Chroma query", "Phase 2 policy", "Phase 3 model inference"],
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "iterations": iterations,
+        "latency_ms": {
+            "mean": statistics.mean(samples), "min": min(samples),
+            "p50": percentile(samples, 50), "p95": percentile(samples, 95),
+            "p99": percentile(samples, 99), "max": max(samples),
+        },
+        "environment": {"os": platform.platform(), "python": platform.python_version()},
+    }
+    output = ROOT / "runtime" / "artifacts" / "laptop1_latency_report.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    staging = output.with_suffix(".json.staging")
+    staging.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    staging.replace(output)
+    print(json.dumps(report, indent=2))
+    print(f"Report: {output}")
     return 0
 
 
