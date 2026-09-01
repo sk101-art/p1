@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $RepoRoot
+$env:PYTHONPATH = $RepoRoot
 $Phase1Python = Join-Path $RepoRoot ".venv-phase1\Scripts\python.exe"
 $Phase2Python = Join-Path $RepoRoot ".venv-phase2\Scripts\python.exe"
 

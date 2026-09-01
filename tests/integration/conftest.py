@@ -29,12 +29,15 @@ def state_db_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def runtime():
-    """A warmed Phase 2 runtime (shared across tests in a session is ideal,
-    but warming per-fixture keeps tests isolated)."""
-    from integration.laptop1.phase2_runtime import Phase2Runtime
+def runtime(tmp_path: Path):
+    """A warmed Phase 2 runtime (isolated chroma dir per fixture)."""
+    from integration.laptop1.phase2_runtime import Phase2Runtime, Phase2RuntimeConfig
 
-    rt = Phase2Runtime()
+    cfg = Phase2RuntimeConfig(
+        chroma_dir=tmp_path / "chroma",
+        collection_name="test_integration_collection",
+    )
+    rt = Phase2Runtime(cfg)
     rt.warm()
     yield rt
     rt.close()

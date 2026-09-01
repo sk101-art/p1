@@ -16,7 +16,7 @@ from .contract_registry import ContractRegistry
 from .controller import IntegrationController
 from .health import HealthService
 from .models import NotificationPayload, PipelineStatus, TriggerRequest, TriggerResponse
-from .phase2_runtime import Phase2Runtime
+from .phase2_runtime import Phase2Runtime, Phase2RuntimeConfig
 from .recovery import RecoveryManager
 from .state_store import StateStore
 
@@ -26,7 +26,7 @@ logger = logging.getLogger("laptop1.integration")
 class IntegrationService:
     def __init__(self) -> None:
         config.ensure_runtime_dirs()
-        self.runtime = Phase2Runtime()
+        self.runtime = Phase2Runtime(Phase2RuntimeConfig(chroma_dir=config.CHROMA_DIR))
         self.store = StateStore(config.STATE_DB_PATH)
         self.artifacts = ArtifactManager()
         self.controller = IntegrationController(self.runtime, self.store, self.artifacts)

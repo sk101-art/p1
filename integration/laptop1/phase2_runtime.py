@@ -54,8 +54,20 @@ class Phase2Runtime:
             collection_name=self.config.collection_name,
             embedder=None,  # use default SentenceTransformer
         )
-        # Force collection materialization.
-        _ = self._memory.collection
+        # Force embedder warmup and verify embedding dimension compatibility.
+        try:
+            if hasattr(self._memory, "_embed"):
+                _ = self._memory._embed(["warmup sentence"])
+            col = self._memory.collection
+            if hasattr(col, "count") and col.count() > 0:
+                _ = col.query(query_embeddings=[[0.0] * 384], n_results=1)
+        except Exception as exc:
+            if "dimension" in str(exc).lower() and hasattr(self._memory, "_client") and self._memory._client is not None:
+                self._memory._client.delete_collection(name=self.config.collection_name)
+                self._memory._collection = self._memory._client.get_or_create_collection(
+                    name=self.config.collection_name,
+                    metadata={"hnsw:space": "cosine"},
+                )
         self._ready = True
 
     @property

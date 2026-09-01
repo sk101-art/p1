@@ -9,6 +9,7 @@ CANONICAL_DATASET_FILE = REPO_ROOT / "frontend_data" / "unified_master_dataset.j
 STATE_DB_PATH = REPO_ROOT / "runtime" / "state" / "laptop1_pipeline.db"
 RUNTIME_LOG_DIR = REPO_ROOT / "runtime" / "logs"
 ARTIFACT_DIR = REPO_ROOT / "runtime" / "artifacts"
+CHROMA_DIR = REPO_ROOT / "runtime" / "state" / "chroma"
 
 BIND_HOST = os.getenv("LAPTOP1_BIND_HOST", "127.0.0.1")
 BIND_PORT = int(os.getenv("LAPTOP1_BIND_PORT", "8102"))
@@ -23,8 +24,9 @@ RECOVERY_ON_STARTUP = os.getenv("LAPTOP1_RECOVERY_ON_STARTUP", "1") == "1"
 
 
 def ensure_runtime_dirs() -> None:
-    for path in (STATE_DB_PATH.parent, RUNTIME_LOG_DIR, ARTIFACT_DIR):
+    for path in (STATE_DB_PATH.parent, RUNTIME_LOG_DIR, ARTIFACT_DIR, CHROMA_DIR):
         path.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("PHASE2_CHROMA_DIR", str(CHROMA_DIR))
 
 
 __all__ = [name for name in globals() if name.isupper()] + ["ensure_runtime_dirs"]

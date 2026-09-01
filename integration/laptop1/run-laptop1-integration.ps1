@@ -20,7 +20,7 @@ $ErrorFile = Join-Path $Runtime "integration.err"
 $Process = Start-Process -FilePath $Python -ArgumentList @(
     "-m", "integration.laptop1.main"
 ) -WorkingDirectory $RepoRoot -RedirectStandardOutput $LogFile `
-  -RedirectStandardError $ErrorFile -NoNewWindow -PassThru
+  -RedirectStandardError $ErrorFile -WindowStyle Hidden -PassThru
 
 $PidFile = Join-Path $State "integration.pid"
 Set-Content -Path $PidFile -Value $Process.Id -Encoding ascii
