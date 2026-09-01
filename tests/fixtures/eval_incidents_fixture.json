@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-08-30T10:00:00Z",
+  "metadata": {
+    "dataset_version": "eval_v1.0",
+    "git_sha": "eval1234567890"
+  },
+  "incidents": [
+    {
+      "incident_event": {
+        "incident_id": "inc_pay_001",
+        "target_service": "payment-service",
+        "severity": "CRITICAL",
+        "priority_score": 95.0,
+        "occurrence_count": 10
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "Database connection pool exhausted under high traffic load",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-30T09:59:00Z",
+            "level": "ERROR",
+            "trace_id": "trace-pay-001",
+            "span_id": "span-pay-001",
+            "content": "Database connection pool exhausted under high traffic load"
+          }
+        ],
+        "metrics_snapshot": []
+      },
+      "infrastructure_topology": {
+        "role": "payment-gateway",
+        "downstream_dependencies": [
+          "postgres-db"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "unhealthy",
+        "health_check": "HTTP 500",
+        "dependency_states": {
+          "postgres-db": "unreachable"
+        }
+      },
+      "injected_chaos_context": {}
+    },
+    {
+      "incident_event": {
+        "incident_id": "inc_auth_002",
+        "target_service": "auth-service",
+        "severity": "HIGH",
+        "priority_score": 80.0,
+        "occurrence_count": 5
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "Redis cache node out of memory error in auth service",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-30T09:59:00Z",
+            "level": "ERROR",
+            "trace_id": "trace-auth-002",
+            "span_id": "span-auth-002",
+            "content": "Redis cache node out of memory error in auth service"
+          }
+        ],
+        "metrics_snapshot": []
+      },
+      "infrastructure_topology": {
+        "role": "auth-service",
+        "downstream_dependencies": [
+          "redis"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "unhealthy",
+        "health_check": "HTTP 500",
+        "dependency_states": {
+          "redis": "unreachable"
+        }
+      },
+      "injected_chaos_context": {}
+    },
+    {
+      "incident_event": {
+        "incident_id": "inc_ord_003",
+        "target_service": "order-service",
+        "severity": "HIGH",
+        "priority_score": 75.0,
+        "occurrence_count": 3
+      },
+      "telemetry_evidence": {
+        "log_cluster_template": "Kafka message consumer group rebalance timeout in order queue",
+        "log_samples": [
+          {
+            "timestamp": "2026-08-30T09:59:00Z",
+            "level": "ERROR",
+            "trace_id": "trace-ord-003",
+            "span_id": "span-ord-003",
+            "content": "Kafka message consumer group rebalance timeout in order queue"
+          }
+        ],
+        "metrics_snapshot": []
+      },
+      "infrastructure_topology": {
+        "role": "order-service",
+        "downstream_dependencies": [
+          "kafka"
+        ]
+      },
+      "service_health_status": {
+        "docker_status": "unhealthy",
+        "health_check": "HTTP 500",
+        "dependency_states": {
+          "kafka": "unreachable"
+        }
+      },
+      "injected_chaos_context": {}
+    }
+  ]
+}
