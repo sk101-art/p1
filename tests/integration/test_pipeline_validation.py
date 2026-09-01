@@ -9,6 +9,7 @@ import re
 import pytest
 
 
+@pytest.mark.runtime
 def test_pipeline_live_artifacts_and_boundary():
     state_dir = Path("runtime/artifacts/runs")
     runs = sorted(
